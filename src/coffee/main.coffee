@@ -69,7 +69,7 @@ Image.load url, (imageData)->
       container: container
     datasetList.push dataset
 
-  # extract feature keypoints
+  # convolute
 
   levels = 2
   sigmaList = (pow(2, 1+(level-1)/levels) for level in [0..levels+1])
@@ -90,12 +90,24 @@ Image.load url, (imageData)->
   Task.__barrier__ null
 
   for dataset in datasetList
+    dataset.keypointListListList = {}
     for method in ['trace', 'determinant', 'gaussian']
       context = newCanvas dataset.width, dataset.height, dataset.container
 
       Task.detect [method, dataset.surfaceList, kernelList, sigmaList, dataset.width, dataset.height],
-        context, (keypointListList, context)->
+        [method, context, dataset], (keypointListList, [method, context, dataset])->
 
+          dataset.keypointListListList[method] = keypointListList
           Image.blot keypointListList, context
 
-  Task.__barrier__ null
+  Task.__barrier__ ()->
+
+    for method in ['trace', 'determinant', 'gaussian']
+      keypointListList0 = datasetList[0].keypointListListList[method]
+      keypointListList1 = datasetList[1].keypointListListList[method]
+
+      for color in [0..6-1]
+        keypointList0 = keypointListList0[color]
+        keypointList1 = keypointListList1[color]
+
+        console.log keypointList0.length/6*keypointList1.length/6
