@@ -28,41 +28,74 @@ gaussian = (sigma)->
     kernel[i] = y
   kernel
 
-newCanvas = (width, height)->
+newContainer = ()->
+  container = document.createElement('div')
+  container.style.display = 'inline-block';
+  results = document.getElementById('results')
+  results.appendChild container
+  container
+
+newCanvas = (width, height, container)->
   canvas = document.createElement('canvas')
   context = canvas.getContext('2d')
   canvas.width = width
   canvas.height = height
-  results = document.getElementById('results')
-  results.appendChild canvas
+  container.appendChild canvas
+  container.appendChild document.createElement('br')
   context
 
 url = 'https://farm4.staticflickr.com/3755/19651424679_aa20a63dba_b.jpg'
 console.log url
 Image.load url, (imageData)->
-  image = Image.extract imageData, 0, 0, imageData.width, imageData.height
-  size = image.length
-  width = imageData.width
+
+  # prepare image data
+
+  width = imageData.width/2
   height = imageData.height
+
+  datasetList = []
+  for offset in [0, -width]
+
+    container = newContainer()
+    context = newCanvas width, height, container
+    context.putImageData imageData, offset, 0
+    image = context.getImageData 0, 0, width, height
+    surface = Image.extract image, width, height
+
+    dataset =
+      width: image.width
+      height: image.height
+      surface: surface
+      container: container
+    datasetList.push dataset
+
+  # extract feature keypoints
 
   levels = 2
   sigmaList = (pow(2, 1+(level-1)/levels) for level in [0..levels+1])
   kernelList = (gaussian(sigmaList[level]) for level in [0..levels+1])
-  imageList = (null for level in [0..levels+1])
+
+  for dataset in datasetList
+    dataset.surfaceList = (null for level in [0..levels+1])
+    for level in [0..levels+1]
+      context = newCanvas dataset.width, dataset.height, dataset.container
+
+      Task.convolute [kernelList[level], dataset.surface, dataset.width, dataset.height],
+        [level, context, dataset], (surface, [level, context, dataset])->
+
+          dataset.surfaceList[level] = surface
+          imageData = Image.compact surface, context, dataset.width, dataset.height
+          context.putImageData imageData, 0, 0
 
   Task.__barrier__ null
-  for level in [0..levels+1]
-    context = newCanvas width, height
-    Task.convolute [kernelList[level], image, width, height],
-      [level, context], (image, [level, context])->
-        imageData = Image.compact image, context, width, height
-        context.putImageData imageData, 0, 0
-        imageList[level] = image
-  Task.__barrier__ null
 
-  for method in ['trace', 'determinant', 'gaussian']
-    context = newCanvas width, height
-    Task.detect [method, imageList, kernelList, sigmaList, width, height],
-      context, (keypointListList, context)->
-        Image.blot keypointListList, context
+  for dataset in datasetList
+    for method in ['trace', 'determinant', 'gaussian']
+      context = newCanvas dataset.width, dataset.height, dataset.container
+
+      Task.detect [method, dataset.surfaceList, kernelList, sigmaList, dataset.width, dataset.height],
+        context, (keypointListList, context)->
+
+          Image.blot keypointListList, context
+
   Task.__barrier__ null

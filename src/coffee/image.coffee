@@ -46,7 +46,7 @@ module.exports =
   # Convert a ImageData object into a 4-times-as-big Float32Array object.
   # For more detail, see Surface.extract() and Surface.downsize().
 
-  extract: (image, x, y, width, height)->
+  extract: (image, width, height)->
     array = new Float32Array(width*height*4)
     size = width*height
     Surface.extract \

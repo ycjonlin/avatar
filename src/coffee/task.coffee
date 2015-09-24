@@ -13,31 +13,31 @@ module.exports =
   # Convolute a Float32Array object with a Float32Array kernel both lengthwise and crosswise.
   # Return a new Float32Array with result. For more detail, see Surface.convolute().
 
-  convolute: (kernel, image, width, height)->
+  convolute: (kernel, surface, width, height)->
     count1 = height*2
     count0 = width*2
     radius = kernel.length>>1
-    image0 = image
-    image1 = new Float32Array(image.length)
-    image2 = new Float32Array(image.length)
+    surface0 = surface
+    surface1 = new Float32Array(surface.length)
+    surface2 = new Float32Array(surface.length)
 
-    Surface.convolute image1, image0, kernel,
+    Surface.convolute surface1, surface0, kernel,
       count1-radius*2, count0, count0, 1, kernel.length, count0
-    Surface.convolute image2.subarray((count0+1)*radius), image1, kernel,
+    Surface.convolute surface2.subarray((count0+1)*radius), surface1, kernel,
       count1-radius*2, count0, count0-radius*2, 1, kernel.length, 1
 
-    image2
+    surface2
 
 
   # detect
   # --
   # Detect keypoints from 3 consective Float32Array objects of a filter pyramid.
 
-  detect: (method, imageList, kernelList, sigmaList, width, height)->
+  detect: (method, surfaceList, kernelList, sigmaList, width, height)->
     count1 = height*2
     count0 = width*2
-    size   = imageList[0].length
-    levels = imageList.length-1
+    size   = surfaceList[0].length
+    levels = surfaceList.length-1
     levelListWithoutCeiling = [1..levels-1]
     levelListWithCeiling = [0..levels]
     borderList = ((kernel.length>>1)+1 for kernel in kernelList)
@@ -47,9 +47,9 @@ module.exports =
     measureList = []
     for level in levelListWithCeiling
       measure = new Float32Array(size)
-      image   = imageList[level]
+      surface = surfaceList[level]
       sigma   = sigmaList[level]
-      Measure[method] measure, image, sigma, count1, count0, count0, 1
+      Measure[method] measure, surface, sigma, count1, count0, count0, 1
       measureList.push measure
 
     #### non-extremum suppression
@@ -73,10 +73,10 @@ module.exports =
     for color in colorList
       feature = featureList[color]
       for level in levelListWithoutCeiling
-        image   = imageList[level]
+        surface = surfaceList[level]
         border  = borderList[level]
         extreme = extremeListList[level][color].subarray(0, extremeOffsetListList[level][color])
-        offset  = Feature.gaussian feature, image, extreme, count0, count1
+        offset  = Feature.gaussian feature, surface, extreme, count0, count1
         feature = feature.subarray(offset)
       featureList[color] = featureList[color].subarray(0, featureList[color].length-feature.length)
     featureList
