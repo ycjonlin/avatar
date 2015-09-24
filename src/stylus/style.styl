@@ -1,0 +1,58 @@
+@import bootstrap
+
+spectrum = #2ecc71 #1abc9c #3498db #9b59b6 #e74c3c #e67e22 #f1c40f
+
+body, html
+  margin 0
+  width 100%
+  height 100%
+
+ul.navigation
+  float right
+  position fixed
+  top: 50%
+  margin-top -95px
+  padding 25px
+  right 0
+  z-index 9999
+  
+  &>li
+    cursor pointer
+    display block
+    width 12px
+    height 12px
+    border 2px solid white
+    border-radius 8px
+    margin-bottom 8px
+    
+    &.active
+      background white
+
+.page
+  width 100%
+  height 100%
+
+.slide
+  background-attachment fixed
+  width 100%
+  height 100%
+  position relative
+  overflow hidden
+  
+  for color, i in spectrum
+    &:nth-child({length(spectrum)}n+{i+1})
+      background-color saturate(lighten(color, 40%), 40%)
+  
+  & div
+    //background-color rgba(255,255,255,0.25)
+    
+  .container
+    padding 80px
+    height 100%
+    
+  h1
+    font-size 4em
+    text-align center
+  h2
+    font-size 2.8em
+    text-align center

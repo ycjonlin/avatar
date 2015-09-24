@@ -1,0 +1,8 @@
+*.pyc
+.DS_Store
+coverage
+doc
+node_modules
+npm-debug.log
+public
+rev-manifest.json
