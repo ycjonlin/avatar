@@ -37,16 +37,6 @@ newCanvas = (width, height)->
   results.appendChild canvas
   context
 
-alpha = 1/16
-colorList = [
-  'rgba(255,0,0,'+alpha+')',
-  'rgba(0,255,0,'+alpha+')',
-  'rgba(0,0,255,'+alpha+')',
-  'rgba(0,255,255,'+alpha+')',
-  'rgba(255,0,255,'+alpha+')',
-  'rgba(255,255,0,'+alpha+')',
-]
-
 url = 'https://farm4.staticflickr.com/3755/19651424679_aa20a63dba_b.jpg'
 console.log url
 Image.load url, (imageData)->
@@ -74,39 +64,5 @@ Image.load url, (imageData)->
     context = newCanvas width, height
     Task.detect [method, imageList, kernelList, sigmaList, width, height],
       context, (keypointListList, context)->
-        context.globalCompositeOperation = 'multiply'
-        for keypointList, i in keypointListList
-          color = colorList[i]
-          for offset in [0..keypointList.length-1] by 6
-
-            g   = keypointList[offset+0]
-            g0  = keypointList[offset+1]
-            g1  = keypointList[offset+2]
-            g00 = keypointList[offset+3]
-            g01 = keypointList[offset+4]
-            g11 = keypointList[offset+5]
-
-            trc = (g00+g11)/2
-            det = g00*g11-g01*g01
-            dif = sqrt(trc*trc-det)
-            l0 = trc-dif
-            l1 = trc+dif
-
-            norm = fround(1/(g01*g01-g00*g11))
-            u0 = fround(norm*(g0*g11-g1*g01))
-            u1 = fround(norm*(g1*g00-g0*g01))
-            th = atan2(-g01-g01, g00-g11)/2
-            lg = sqrt(abs(l0*l1))
-            r0 = sqrt(abs(lg/l0))
-            r1 = sqrt(abs(lg/l1))
-
-            context.save()
-            context.translate u0, u1
-            context.rotate th
-            context.scale r0, r1
-            context.beginPath()
-            context.arc 0, 0, 2, 0, tau
-            context.fillStyle = color
-            context.fill()
-            context.restore()
+        Image.blot keypointListList, context
   Task.__barrier__ null

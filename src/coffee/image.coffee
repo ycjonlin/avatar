@@ -2,6 +2,23 @@
 
 Surface = require './surface'
 
+alpha = 1/16
+colorList = [
+  'rgba(255,0,0,'+alpha+')',
+  'rgba(0,255,0,'+alpha+')',
+  'rgba(0,0,255,'+alpha+')',
+  'rgba(0,255,255,'+alpha+')',
+  'rgba(255,0,255,'+alpha+')',
+  'rgba(255,255,0,'+alpha+')',
+]
+
+fround = Math.fround
+atan2 = Math.atan2
+sqrt = Math.sqrt
+abs = Math.abs
+pi = Math.PI
+tau = pi*2
+
 module.exports =
 
   # load
@@ -72,3 +89,42 @@ module.exports =
     Surface.flatten image.data, array,
       height*2, width*2, width*2, 1
     image
+
+  # blot
+  # --
+
+  blot: (keypointListList, context)->
+    context.globalCompositeOperation = 'multiply'
+    for keypointList, i in keypointListList
+      context.fillStyle = colorList[i]
+      for offset in [0..keypointList.length-1] by 6
+
+        g   = keypointList[offset+0]
+        g0  = keypointList[offset+1]
+        g1  = keypointList[offset+2]
+        g00 = keypointList[offset+3]
+        g01 = keypointList[offset+4]
+        g11 = keypointList[offset+5]
+
+        trc = (g00+g11)/2
+        det = g00*g11-g01*g01
+        dif = sqrt(trc*trc-det)
+        l0 = trc-dif
+        l1 = trc+dif
+
+        norm = fround(1/(g01*g01-g00*g11))
+        u0 = fround(norm*(g0*g11-g1*g01))
+        u1 = fround(norm*(g1*g00-g0*g01))
+        th = atan2(-g01-g01, g00-g11)/2
+        lg = sqrt(abs(l0*l1))
+        r0 = sqrt(abs(lg/l0))
+        r1 = sqrt(abs(lg/l1))
+
+        context.save()
+        context.translate u0, u1
+        context.rotate th
+        context.scale r0, r1
+        context.beginPath()
+        context.arc 0, 0, 2, 0, tau
+        context.fill()
+        context.restore()
