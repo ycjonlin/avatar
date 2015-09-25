@@ -88,4 +88,4 @@ module.exports =
   match: (keypoint0, keypoint1)->
     partition0 = Match.partition keypoint0
     partition1 = Match.partition keypoint1
-    match = Match.match partition0, partition1
+    #match = Match.match partition0, partition1

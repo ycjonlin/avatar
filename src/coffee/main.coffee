@@ -110,4 +110,7 @@ Image.load url, (imageData)->
         keypointList0 = keypointListList0[color]
         keypointList1 = keypointListList1[color]
 
-        console.log keypointList0.length/6*keypointList1.length/6
+        Task.match [keypointList0, keypointList1],
+          null, (results, arguments_)->
+
+  Task.__barrier__ ()->
