@@ -86,6 +86,9 @@ module.exports =
   # --
   # Match keypoints from 2 Float32Array objects.
   match: (keypoint0, keypoint1)->
-    partition0 = Match.partition keypoint0
-    partition1 = Match.partition keypoint1
+    statistic0 = Match.statistic keypoint0, [16,16,16,16,16,16], [-3e3,-1e1,-1e1,-3e-2,-3e-2,-3e-2], [3e3,1e1,1e1,3e-2,3e-2,3e-2]
+    for totalList, i in statistic0
+      console.log i, Array.prototype.slice.call totalList
+    #partition0 = Match.partition keypoint0
+    #partition1 = Match.partition keypoint1
     #match = Match.match partition0, partition1
